@@ -5,7 +5,6 @@ python:
 install:
   - pip install pipenv
   - pipenv install --dev
-  - pipenv check
 script:
   - pylint app.py api
   - flake8 .

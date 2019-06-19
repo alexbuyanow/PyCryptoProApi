@@ -1,0 +1,50 @@
+---
+-
+    hosts: ansible-example
+    become: yes
+    tasks:
+        -
+            name: Update and upgrade apt packages
+            become: true
+            apt:
+                upgrade: yes
+                update_cache: yes
+                cache_valid_time: 86400
+                autoremove: yes
+        -
+            name: Install Python
+            become: true
+            apt:
+                name:
+                    - python3.7
+                    - python3-pip
+                update_cache: yes
+        -
+            name: Install CryptoPro Dependencies
+                become true
+            apt:
+                name:
+                    - lsb
+                    - lsb-core
+                    - alien
+        -
+            name: Copy CryptoPro dist
+            become: true
+            unarchive:
+                src: files/linux-amd64_deb.tgz
+                dest: /opt
+                owner: root
+                group: root
+        -
+            name: Install CryptoPro
+            become: true
+            command: ./install.sh
+            args:
+                chdir: /opt/linux-amd64_deb
+        -
+            name: Remove CryptoPro dist directory
+            become: true
+            file:
+                path: /opt/linux-amd64_deb
+                state: absent
+

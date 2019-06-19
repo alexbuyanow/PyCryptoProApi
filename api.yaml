@@ -1,0 +1,287 @@
+openapi: 3.0.0
+
+info:
+  title: "Python CryptoPro API"
+  version: "1.0"
+  
+servers:
+  - 
+    url: /api/{version}
+    variables:
+      version:
+        description: API version
+        default: v1
+
+paths:
+  /certificates:
+    get:
+      operationId: api.certificate.get_list
+      summary: Get list of certificates
+      parameters:
+          - $ref: '#/components/parameters/filterSearch'
+          - $ref: '#/components/parameters/filterLimit'
+          - $ref: '#/components/parameters/filterOffset'
+      responses:
+        '200':
+          description: List of certificates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Certificate'
+    post:
+      operationId: api.certificate.add
+      summary: Add certificate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  description: File contains certificate
+                  type: string
+      responses:
+        '201':
+          description: Certificate added
+        '400':
+          description: Error
+
+  /certificates/{cert_id}:
+    get:
+      operationId: api.certificate.get
+      summary: Get certificate by ID
+      parameters:
+        - $ref: '#/components/parameters/certId'
+      responses:
+        '200':
+          description: Get certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certificate'
+        '404':
+          description: Certificate is not found
+    delete:
+      operationId: api.certificate.delete
+      summary: Remove cerificate
+      parameters:
+        - $ref: '#/components/parameters/certId'
+      responses:
+        '204':
+          description: Certificate removed
+        '400':
+          description: Error
+        '404':
+          description: Certificate is not found
+
+  /crls:
+    get:
+      operationId: api.crl.get_list
+      summary: Get CRLs list
+      parameters:
+          - $ref: '#/components/parameters/filterSearch'
+      responses:
+        '200':
+          description: CRLs list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Certificate'
+    post:
+      operationId: api.crl.add
+      summary: Add CRL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  description: File contains CRL
+                  type: string
+      responses:
+        '201':
+          description: CRL added
+        '400':
+          description: Error
+
+  /crls/{cert_id}:
+    get:
+      operationId: api.crl.get
+      summary: Get CRL by ID
+      parameters:
+        - $ref: '#/components/parameters/certId'
+      responses:
+        '200':
+          description: Get CRL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CRL'
+        '404':
+          description: CRL is not found
+    delete:
+      operationId: api.crl.delete
+      summary: Remove CRL
+      parameters:
+        - $ref: '#/components/parameters/certId'
+      responses:
+        '204':
+          description: CRL removed
+        '404':
+          description: CRL is not found
+
+  /sign:
+    post:
+      operationId: api.sign.sign
+      summary: Sign file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sign_type
+                - file
+              properties:
+                sign_type:
+                  description: Type of signature
+                  type: string
+                  enum: ['attached' , 'detached']
+                file:
+                  description: BASE64 encoded file content
+                  type: string
+      responses:
+        '200':
+          description: File signed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sign:
+                    type: string
+        '400':
+          description: Error
+
+  /validate:
+    post:
+      operationId: api.sign.validate
+      summary: Validate file signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sign_type
+                - file
+              properties:
+                sign_type:
+                  description: Type of signature
+                  type: string
+                  enum: ['attached' , 'detached']
+                file:
+                  description: BASE64 encoded file content
+                  type: string
+                sign:
+                  description: BASE64 encoded detached signature content
+                  type: string
+      responses:
+        '200':
+          description: Signature is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+        '400':
+          description: Validation error
+
+components:
+  schemas:
+    Info:
+      type: object
+      properties:
+        inn: {type: string}
+        ogrn: {type: string}
+        street: {type: string}
+        email': {type: string}
+        country': {type: string}
+
+    Certificate:
+      type: object
+      properties:
+        id: {type: string}
+        subject:
+          $ref: '#/components/schemas/Info'
+        issuer:
+          $ref: '#/components/schemas/Info'
+        valid_from: {type: string}
+        valid_to: {type: string}
+        serial: {type: string}
+        thumbprint: {type: string}
+
+    CRL:
+      type: object
+      properties:
+        id: {type: string}
+        issuer:
+          $ref: '#/components/schemas/Info'
+        update: {type: string}
+        next_updte: {type: string}
+
+  parameters:
+    certId:
+      name: cert_id
+      description: Certificate or CRL ID
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-f0-9]+$"
+
+    filterSearch:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+
+    filterLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: string
+
+    filterOffset:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: string

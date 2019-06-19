@@ -1,0 +1,1 @@
+ansible-example ansible_connection=local

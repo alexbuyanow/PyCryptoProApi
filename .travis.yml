@@ -4,7 +4,8 @@ python:
   - "3.7"
 install:
   - pip install pipenv
-  - pipenv install
+  - pipenv install --dev
+  - pipenv check
 script:
   - pylint app.py api
   - flake8 .
